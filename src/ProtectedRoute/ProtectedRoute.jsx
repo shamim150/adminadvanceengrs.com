@@ -1,5 +1,3 @@
-import { jwtDecode } from "jwt-decode";
-import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 
 const ProtectedRoute = ({ children }) => {
@@ -8,13 +6,7 @@ const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
 
   if (token) {
-    const user = jwtDecode(token);
-    console.log(user)
-    if (user?.email) {
-      return <div>{children}</div>;
-    } else {
-      return <Navigate to="/login" replace state={{ from: location }} />;
-    }
+    return <div>{children}</div>;
   }
 
   return <Navigate to="/login" replace state={{ from: location }} />;

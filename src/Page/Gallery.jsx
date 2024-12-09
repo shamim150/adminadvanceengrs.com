@@ -1,98 +1,214 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+import Loading from "../Components/Loading";
+import { toast } from "react-toastify";
 
-// Cart Component
-const AdminCart = ({ title, items, onRemove, onClear, actionLabel, onAction }) => {
-  return (
-    <div className="bg-white shadow-md rounded-lg p-6 w-full ">
-      {/* Cart Header */}
-      <h2 className="text-lg font-bold text-gray-800 mb-4">{title}</h2>
+const Gallery = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    image: null,
+    caption: "",
+    type: "",
+  });
 
-      {items.length > 0 ? (
-        <div className="space-y-4">
-          {/* Item List */}
-          <ul>
-            {items.map((item, index) => (
-              <li
-                key={index}
-                className="flex items-center justify-between border-b pb-2 mb-2"
-              >
-                <div className="flex items-center space-x-3">
-                  <img
-                    src={item.src}
-                    alt={item.alt}
-                    className="h-12 w-12 object-cover rounded-md"
-                  />
-                  <span className="text-gray-700">{item.alt}</span>
-                </div>
-                <button
-                  onClick={() => onRemove(index)}
-                  className="text-red-500 hover:text-red-600 text-sm font-medium"
-                >
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
-
-          {/* Action Buttons */}
-          <div className="flex justify-between">
-            <button
-              onClick={onClear}
-              className="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-            >
-              Clear All
-            </button>
-            <button
-              onClick={onAction}
-              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              {actionLabel}
-            </button>
-          </div>
-        </div>
-      ) : (
-        <p className="text-gray-500">No items selected.</p>
-      )}
-    </div>
-  );
-};
-
-// Admin Gallery Page
-const AdminGallery = () => {
-  const [cart1Items, setCart1Items] = useState([
-    { src: "/Profile.png", alt: "Image 1" },
-    { src: "/images/item2.jpg", alt: "Image 2" },
-  ]);
-
-
-  const removeFromCart1 = (index) => {
-    setCart1Items((prev) => prev.filter((_, i) => i !== index));
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setFormData({ ...formData, image: file });
+  };
 
-  const clearCart1 = () => setCart1Items([]);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const performAction1 = () => alert("Performing action for Cart 1 items");
+    // Example for handling form data submission
+    const formDataToSubmit = new FormData();
+    formDataToSubmit.append("image", formData.image);
+    formDataToSubmit.append("caption", formData.caption);
+    formDataToSubmit.append("type", formData.type);
+
+    try {
+      const response = await fetch(
+        "https://advanced-engineering-admin.vercel.app/api/v1/gallery/upload",
+        {
+          method: "POST",
+          headers: {
+            authorization: localStorage.getItem("token"),
+          },
+          body: formDataToSubmit,
+        }
+      );
+
+      const data = await response.json();
+
+      if (data?.success) {
+        toast.success("Gallery added successfully!");
+        fetchgalleryData();
+      } else {
+        toast.error("Falied to upload!");
+      }
+    } catch (error) {
+      toast.error("Falied to upload!");
+    }
+
+    // Reset form and close modal
+    setFormData({ image: null, caption: "", type: "" });
+    setIsModalOpen(false);
+  };
+
+  const [loading, setLoading] = useState(true);
+  const [galleryData, setGalleryData] = useState([]);
+
+  const fetchgalleryData = async () => {
+    const response = await fetch(
+      "https://advanced-engineering-admin.vercel.app/api/v1/gallery"
+    );
+    const data = await response.json();
+    setGalleryData(data?.data);
+    setLoading(false);
+  };
+  useEffect(() => {
+    fetchgalleryData();
+  }, []);
+
+  const handleDelete = async (id) => {
+    const response = await fetch(
+      `https://advanced-engineering-admin.vercel.app/api/v1/gallery/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          authorization: localStorage.getItem("token"),
+        },
+      }
+    );
+    const data = await response.json()
+
+    if(data?.success){
+      toast.success("Item deleted");
+      fetchgalleryData();
+
+    }else{
+      toast.error("Faield to delete!")
+    }
+  };
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Admin Gallery</h1>
+    <div className="w-[1000px] max-h-[700px] overflow-y-scroll">
+      <div className="flex justify-end mt-10">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="text-white px-4 py-2 bg-fuchsia-800 hover:bg-fuchsia-400 transition-all duration-300 font-bold  rounded-lg"
+        >
+          Add Gallery
+        </button>
+      </div>
 
-      {/* Cart Layout */}
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Cart 1 */}
-        <AdminCart
-          title="Selected Images for Approval"
-          items={cart1Items}
-          onRemove={removeFromCart1}
-          onClear={clearCart1}
-          actionLabel="Approve"
-          onAction={performAction1}
-        />
-     
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-full max-w-md p-6 relative">
+            <h2 className="text-lg font-bold mb-4">Add Gallery</h2>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-4">
+                <label className="block text-gray-700 font-medium mb-2">
+                  Image
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 font-medium mb-2">
+                  Caption
+                </label>
+                <input
+                  type="text"
+                  name="caption"
+                  value={formData.caption}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                  placeholder="Enter caption"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 font-medium mb-2">
+                  Type
+                </label>
+                <select
+                  name="type"
+                  value={formData.type}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                  required
+                >
+                  <option value="" disabled>
+                    Select Type
+                  </option>
+                  <option value="Exhibition">Exhibition</option>
+                  <option value="Awards">Awards</option>
+                </select>
+              </div>
+              <div className="flex justify-end space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-fuchsia-800 text-white rounded-lg hover:bg-fuchsia-600"
+                >
+                  Submit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* gallery */}
+      <div className="container mx-auto p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {galleryData?.map((card) => (
+          <div
+            key={card._id}
+            className="bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200"
+          >
+            <img
+              src={card.image}
+              alt={card.caption}
+              className="w-full h-48 object-cover"
+            />
+            <div className="p-4">
+              <h2 className="text-lg font-bold">{card.caption}</h2>
+              <p className="text-gray-600">
+                <span className="font-medium">Type:</span> {card.type}
+              </p>
+
+              <button
+                onClick={() => handleDelete(card._id)}
+                className="mt-4 w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 transition"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
 };
 
-export default AdminGallery;
+export default Gallery;

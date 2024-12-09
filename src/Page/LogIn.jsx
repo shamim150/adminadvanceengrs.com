@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import PageDesign from "../assets/Components/pageDesign";
+import PageDesign from "../Components/pageDesign";
 import { toast } from "react-toastify";
 import { Navigate, useNavigate } from "react-router-dom";
 
 const LogIn = () => {
-  const [email, setEmail] = useState("pieash9@gmail.com");
-  const [password, setPassword] = useState("123456");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const navigate = useNavigate()
 
   const handlelogin = async (e) => {

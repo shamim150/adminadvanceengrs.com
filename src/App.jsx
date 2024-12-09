@@ -9,6 +9,7 @@ import LogIn from "./Page/LogIn";
 import ProtectedRoute from "./ProtectedRoute/ProtectedRoute";
 import Gallery from "./Page/Gallery";
 import Carrier from "./Page/Carrier";
+import Contact from "./Page/Contact";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -29,8 +30,22 @@ const router = createBrowserRouter(
           </ProtectedRoute>
         }
       >
+  
         Settings
       </Route>
+
+      <Route
+        path="/contact"
+        element={
+          <ProtectedRoute>
+            <Contact />
+          </ProtectedRoute>
+        }
+      >
+          Contact
+      </Route>
+
+
       <Route path="/login" element={<LogIn />}>
         Log IN
       </Route>

@@ -18,6 +18,9 @@ const SideBar = () => {
           <li>
             <NavLink to="carrier">Career and News</NavLink>
           </li>
+          <li>
+            <NavLink to="contact">Contact</NavLink>
+          </li>
         </ul>
       </div>
     </div>
