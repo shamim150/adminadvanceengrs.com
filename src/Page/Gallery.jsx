@@ -157,6 +157,7 @@ const Gallery = () => {
                   </option>
                   <option value="Exhibition">Exhibition</option>
                   <option value="Awards">Awards</option>
+                  <option value="Projects">Projects</option>
                 </select>
               </div>
               <div className="flex justify-end space-x-4">
